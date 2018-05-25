@@ -47,6 +47,8 @@ class App extends Component {
             dataSource={multipleDataList}
             columns={columns2}
             expanded={true}
+            singleSelectable={true}
+            // multiSelectable={false}
             treeStyle={{}}
             iconStyle={{
               marginRight: 0, 
