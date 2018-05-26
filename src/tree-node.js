@@ -1,6 +1,4 @@
 import React from "react";
-import { RadioButton } from "material-ui/RadioButton";
-import Checkbox from "material-ui/Checkbox";
 
 import IconArrowRight from "./widgets/icon-arrow-right";
 import IconArrowDown from "./widgets/icon-arrow-down";
@@ -16,7 +14,8 @@ export default class TreeNode extends React.Component {
 
   componentDidMount() {
     this.setState({
-      display: this.props.expanded ? "row" : "none"
+      display:
+        this.props.expanded || this.props.parentExpanded ? "table-ow" : "none"
     });
   }
 
@@ -35,7 +34,9 @@ export default class TreeNode extends React.Component {
 
   setNextSiblingStyle(treeIndex, element, expanded) {
     if (element.dataset.treeIndex.startsWith(treeIndex)) {
-      expanded ? this.expandedElement(treeIndex, element) : this.collapseElement(treeIndex, element);
+      expanded
+        ? this.expandedElement(treeIndex, element)
+        : this.collapseElement(treeIndex, element);
       if (element.nextSibling) {
         this.setNextSiblingStyle(treeIndex, element.nextSibling, expanded);
       }
@@ -49,12 +50,17 @@ export default class TreeNode extends React.Component {
     }
     const currentTarget = e.currentTarget;
     const treeIndex = currentTarget.dataset.treeIndex;
-    this.setNextSiblingStyle(treeIndex, currentTarget.nextSibling, !this.props.expanded);
+    this.setNextSiblingStyle(
+      treeIndex,
+      currentTarget.nextSibling,
+      !this.props.expanded
+    );
     this.props.updateTreeExpanded(this.props.index);
   }
 
   selectTreeNode(e) {
     e.stopPropagation();
+    this.props.onSelect(this.props.index, e.currentTarget.checked);
   }
 
   getIconStyle() {
@@ -80,7 +86,11 @@ export default class TreeNode extends React.Component {
             width: item.width
           };
           return (
-            <td className="tree-node-item" key={`p${data.key}${index}`} style={style}>
+            <td
+              className="tree-node-item"
+              key={`p${data.key}${index}`}
+              style={style}
+            >
               {value}
             </td>
           );
@@ -99,10 +109,10 @@ export default class TreeNode extends React.Component {
       className,
       deepth,
       expanded,
+      checked,
       singleSelectable,
       multiSelectable
     } = this.props;
-    const display = treeIndex === "0" || expanded ? "table-row" : "none";
 
     const dataIconStyle = {
       height: nodeStyle.nodeHeight,
@@ -112,37 +122,42 @@ export default class TreeNode extends React.Component {
       <tr
         className={`tree-node-li ${className}`}
         key={`li${data.key}`}
-        style={(nodeStyle, { display })}
+        data-expanded={expanded}
         data-index={index}
         data-tree-index={treeIndex}
-        data-expanded={expanded}
+        style={(nodeStyle, { display: this.state.display })}
         onClick={this.onClickHandler.bind(this)}
       >
         {singleSelectable && (
-          <td onClick={this.selectTreeNode.bind(this)}>
-            <RadioButton
-              value="light"
-              label=""
-              style={{
-                display: "table-cell"
-              }}
-            />
+          <td>
+            <input type="radio" onClick={this.selectTreeNode.bind(this)} />
           </td>
         )}
         {multiSelectable && (
           <td>
-            <Checkbox
-              label="Simple"
-              style={{
-                display: "table-cell"
-              }}
+            <input
+              type="checkbox"
+              checked={checked}
+              onClick={this.selectTreeNode.bind(this)}
             />
           </td>
         )}
         <td key={`div${data.key}`} style={dataIconStyle}>
-          <span style={{ display: "inline-block", width: nodeStyle.paddingLeft * deepth, height: 1 }} />
-          {expanded ? <IconArrowDown style={this.getIconStyle()} /> : <IconArrowRight style={this.getIconStyle()} />}
-          <span style={{ display: "inline-block" }}>{data[columns[0].dataIndex]}</span>
+          <span
+            style={{
+              display: "inline-block",
+              width: nodeStyle.paddingLeft * deepth,
+              height: 1
+            }}
+          />
+          {expanded ? (
+            <IconArrowDown style={this.getIconStyle()} />
+          ) : (
+            <IconArrowRight style={this.getIconStyle()} />
+          )}
+          <span style={{ display: "inline-block" }}>
+            {data[columns[0].dataIndex]}
+          </span>
         </td>
         {this.renderData()}
       </tr>
