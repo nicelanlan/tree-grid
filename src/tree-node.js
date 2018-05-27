@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 
-import IconArrowRight from "./widgets/icon-arrow-right";
-import IconArrowDown from "./widgets/icon-arrow-down";
+import IconArrowRight from './widgets/icon-arrow-right';
+import IconArrowDown from './widgets/icon-arrow-down';
 
 // https://github.com/react-component/tree/blob/master/src/TreeNode.jsx
-export default class TreeNode extends React.Component {
+export default class TreeNode extends React.PureComponent {
   constructor() {
     super();
     this.state = {
@@ -14,29 +14,26 @@ export default class TreeNode extends React.Component {
 
   componentDidMount() {
     this.setState({
-      display:
-        this.props.expanded || this.props.parentExpanded ? "table-ow" : "none"
+      display: this.props.expanded || this.props.parentExpanded ? 'table-ow' : 'none'
     });
   }
 
   expandedElement(treeIndex, element) {
-    const pattern = new RegExp(`^${treeIndex}-\\d$`, "g");
+    const pattern = new RegExp(`^${treeIndex}-\\d$`, 'g');
     if (pattern.test(element.dataset.treeIndex)) {
-      element.style.display = "table-row";
+      element.style.display = 'table-row';
     }
   }
 
   collapseElement(treeIndex, element) {
     if (element.dataset.treeIndex.startsWith(treeIndex)) {
-      element.style.display = "none";
+      element.style.display = 'none';
     }
   }
 
   setNextSiblingStyle(treeIndex, element, expanded) {
     if (element.dataset.treeIndex.startsWith(treeIndex)) {
-      expanded
-        ? this.expandedElement(treeIndex, element)
-        : this.collapseElement(treeIndex, element);
+      expanded ? this.expandedElement(treeIndex, element) : this.collapseElement(treeIndex, element);
       if (element.nextSibling) {
         this.setNextSiblingStyle(treeIndex, element.nextSibling, expanded);
       }
@@ -50,11 +47,7 @@ export default class TreeNode extends React.Component {
     }
     const currentTarget = e.currentTarget;
     const treeIndex = currentTarget.dataset.treeIndex;
-    this.setNextSiblingStyle(
-      treeIndex,
-      currentTarget.nextSibling,
-      !this.props.expanded
-    );
+    this.setNextSiblingStyle(treeIndex, currentTarget.nextSibling, !this.props.expanded);
     this.props.updateTreeExpanded(this.props.index);
   }
 
@@ -67,7 +60,7 @@ export default class TreeNode extends React.Component {
     const { iconStyle, isLeaf } = this.props;
     return {
       ...iconStyle,
-      visibility: isLeaf ? "hidden" : "visible"
+      visibility: isLeaf ? 'hidden' : 'visible'
     };
   }
 
@@ -86,11 +79,7 @@ export default class TreeNode extends React.Component {
             width: item.width
           };
           return (
-            <td
-              className="tree-node-item"
-              key={`p${data.key}${index}`}
-              style={style}
-            >
+            <td className="tree-node-item" key={`p${data.key}${index}`} style={style}>
               {value}
             </td>
           );
@@ -135,29 +124,19 @@ export default class TreeNode extends React.Component {
         )}
         {multiSelectable && (
           <td>
-            <input
-              type="checkbox"
-              checked={checked}
-              onClick={this.selectTreeNode.bind(this)}
-            />
+            <input type="checkbox" checked={checked} onClick={this.selectTreeNode.bind(this)} />
           </td>
         )}
         <td key={`div${data.key}`} style={dataIconStyle}>
           <span
             style={{
-              display: "inline-block",
+              display: 'inline-block',
               width: nodeStyle.paddingLeft * deepth,
               height: 1
             }}
           />
-          {expanded ? (
-            <IconArrowDown style={this.getIconStyle()} />
-          ) : (
-            <IconArrowRight style={this.getIconStyle()} />
-          )}
-          <span style={{ display: "inline-block" }}>
-            {data[columns[0].dataIndex]}
-          </span>
+          {expanded ? <IconArrowDown style={this.getIconStyle()} /> : <IconArrowRight style={this.getIconStyle()} />}
+          <span style={{ display: 'inline-block' }}>{data[columns[0].dataIndex]}</span>
         </td>
         {this.renderData()}
       </tr>

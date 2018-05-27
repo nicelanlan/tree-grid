@@ -1,10 +1,10 @@
-import React, { Component } from "react";
-import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
-import getMuiTheme from "material-ui/styles/getMuiTheme";
-import "./App.css";
-import Tree from "./tree";
+import React, { Component } from 'react';
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import getMuiTheme from 'material-ui/styles/getMuiTheme';
+import './App.css';
+import Tree from './tree';
 // import {singleDataList} from './data/single';
-import {multipleDataList} from './data/multiple';
+import { multipleDataList } from './data/multiple';
 
 class App extends Component {
   componentDidMount() {}
@@ -18,11 +18,11 @@ class App extends Component {
     const columns2 = [
       {
         dataIndex: 'name',
-        width: 200,
+        width: 200
       },
       {
         dataIndex: 'desc',
-        width: 200,
+        width: 200
       }
     ];
     return (
@@ -43,7 +43,7 @@ class App extends Component {
               fontSize: 16, 
               }} /> */}
 
-          <Tree 
+          <Tree
             dataSource={multipleDataList}
             columns={columns2}
             expanded={true}
@@ -52,15 +52,16 @@ class App extends Component {
             // checked={true}
             treeStyle={{}}
             iconStyle={{
-              marginRight: 0, 
-              height: 24, 
+              marginRight: 0,
+              height: 24,
               width: 24
             }}
             nodeStyle={{
-              paddingLeft: 40, 
-              nodeHeight: 40, 
-              fontSize: 16, 
-              }} />
+              paddingLeft: 40,
+              nodeHeight: 40,
+              fontSize: 16
+            }}
+          />
         </MuiThemeProvider>
       </div>
     );
