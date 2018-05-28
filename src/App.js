@@ -3,18 +3,16 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import './App.css';
 import Tree from './tree';
-// import {singleDataList} from './data/single';
+import SearchBar from './search-bar';
 import { multipleDataList } from './data/multiple';
+
 
 class App extends Component {
   componentDidMount() {}
+  searchFn(value) {
+    console.log(value);
+  }
   render() {
-    // const columns1 = [
-    //   {
-    //     dataIndex: 'name',
-    //     width: 100,
-    //   },
-    // ];
     const columns2 = [
       {
         dataIndex: 'name',
@@ -28,39 +26,49 @@ class App extends Component {
     return (
       <div className="App">
         <MuiThemeProvider muiTheme={getMuiTheme()}>
-          {/* <Tree 
-            dataSource={singleDataList}
-            columns={columns1}
-            expanded={false}
-            iconStyle={{
-              marginRight: 10, 
-              height: 24, 
-              width: 24
+          <SearchBar
+            componentStyle={{
+              margin: '10px 16px 18px'
             }}
-            nodeStyle={{
-              // marginLeft: 10, 
-              nodeHeight: 40, 
-              fontSize: 16, 
-              }} /> */}
-
+            inputStyle={{
+            }}
+            hintText={'search'}
+            hintStyle={{
+              fontFamily: 'Roboto',
+              fontStyle: 'normal',
+              fontSize: 16,
+              color: 'rgba(0, 0, 0, 0.38)'
+            }}
+            searchFn={this.searchFn}
+          />
           <Tree
+            defaultValue={[3, 4]}
             dataSource={multipleDataList}
             columns={columns2}
+            valueColumn={'id'}
             expanded={true}
-            // singleSelectable={true}
-            multiSelectable={true}
+            singleSelectable={true}
+            // multiSelectable={true}
             // checked={true}
+            searchable={true}
+            searchedText={'s'}
+            branchNodeSelectable={true}
             treeStyle={{}}
-            iconStyle={{
+            arrowIconStyle={{
               marginRight: 0,
               height: 24,
               width: 24
             }}
+            singleSelectIconStyle={{}}
+            multiSelectIconStyle={{}}
             nodeStyle={{
               paddingLeft: 40,
               nodeHeight: 40,
               fontSize: 16
             }}
+            checkedColor={'#ee0000'}
+            uncheckedColor={'#999999'}
+            // multiSelectIconColor={'#ee0000'}
           />
         </MuiThemeProvider>
       </div>
