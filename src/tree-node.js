@@ -15,7 +15,6 @@ export default class TreeNode extends React.PureComponent {
     super();
     this.state = {
       display: false,
-      radioButtonValue: -1
     };
   }
 
@@ -66,22 +65,15 @@ export default class TreeNode extends React.PureComponent {
     // this.resetRadioButtonChecked();
     // e.target.checked = true;
     this.setState({
-      radioButtonValue: value
     });
     this.props.onSelect(this.props.index, e.currentTarget.checked);
   }
 
   resetRadioButtonChecked() {
     const nodeList = document.getElementsByName("tree-grid-radio-button");
-    console.log(nodeList);
     for (let i = 0; i < nodeList.length; i++) {
       nodeList[i].checked = false;
     }
-    // nodeList.forEach(item => {
-    //   item.checked = false;
-    //   return true;
-    // });
-    console.log(nodeList);
   }
 
   getArrowIconStyle() {

@@ -1,9 +1,9 @@
-import React from "react";
-import PropTypes from "prop-types";
+import React from 'react';
+import PropTypes from 'prop-types';
 
-import TreeNode from "./tree-node";
+import TreeNode from './tree-node';
 
-import "./tree.css";
+import './tree.css';
 
 export default class Tree extends React.Component {
   static defaultProps = {
@@ -13,13 +13,13 @@ export default class Tree extends React.Component {
     searchable: false,
     branchNodeSelectable: false,
     checked: false,
-    valueColumn: 'id',
+    valueColumn: 'id'
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      treeNodeList: [],
+      treeNodeList: []
     };
   }
 
@@ -40,7 +40,7 @@ export default class Tree extends React.Component {
         }
         return true;
       });
-      
+
       const childrenNodes = item.childrenNodes;
       if (childrenNodes) {
         item.children = childrenNodes.map(childItem => {
@@ -50,7 +50,7 @@ export default class Tree extends React.Component {
       return treeNodeList;
     });
     this.setState({
-      treeNodeList: treeNodeList,
+      treeNodeList: treeNodeList
     });
   }
 
@@ -59,15 +59,14 @@ export default class Tree extends React.Component {
     columns,
     treeNodeList,
     parentIndex = -1,
-    parentTreeIndex = "",
+    parentTreeIndex = '',
     deepth = 1,
     parentExpanded = true
   ) {
     return data.map((item, itemIndex) => {
       const isHitSearchBool = this.isHitSearch(item);
       const children = this.getChildrenBySearchText(item);
-      console.log(itemIndex, children);
-      const treeIndex = parentTreeIndex ? `${parentTreeIndex}-${itemIndex}` : itemIndex + "";
+      const treeIndex = parentTreeIndex ? `${parentTreeIndex}-${itemIndex}` : itemIndex + '';
       const treeNode = {
         key: `treenode${deepth}${item.key || item.id}`,
         data: item,
@@ -81,9 +80,8 @@ export default class Tree extends React.Component {
         checked: this.props.checked,
         halfChecked: false,
         parentExpanded,
-        branchNodeSelectable: this.props.branchNodeSelectable,
+        branchNodeSelectable: this.props.branchNodeSelectable
       };
-      console.log(treeNode);
       if (isHitSearchBool) {
         treeNodeList.push(treeNode);
       }
@@ -148,7 +146,7 @@ export default class Tree extends React.Component {
     const expanded = !clickedTreeNode.expanded;
     treeNodeList[index].expanded = expanded;
     if (!expanded) {
-      this.setChildrenAttr(index, "expanded", expanded, treeNodeList);
+      this.setChildrenAttr(index, 'expanded', expanded, treeNodeList);
     }
     this.setState({
       treeNodeList
@@ -159,7 +157,7 @@ export default class Tree extends React.Component {
     const { treeNodeList } = this.state;
     const { singleSelectable, multiSelectable } = this.props;
     if (singleSelectable) {
-      this.resetAttr("checked", false, treeNodeList);
+      this.resetAttr('checked', false, treeNodeList);
       for (let i = 0; i < treeNodeList.length; i++) {
         if (i === index) {
           treeNodeList[i].checked = true;
@@ -168,13 +166,13 @@ export default class Tree extends React.Component {
       }
     }
     if (multiSelectable) {
-      this.resetAttr("halfChecked", false, treeNodeList);
+      this.resetAttr('halfChecked', false, treeNodeList);
       treeNodeList[index].checked = selected;
-      this.setChildrenAttr(index, "checked", selected, treeNodeList);
-      this.setParentChecked(index, "checked", selected, treeNodeList);
+      this.setChildrenAttr(index, 'checked', selected, treeNodeList);
+      this.setParentChecked(index, 'checked', selected, treeNodeList);
     }
     this.setState({
-      treeNodeList,
+      treeNodeList
     });
   }
 
@@ -229,7 +227,17 @@ export default class Tree extends React.Component {
   }
 
   renderData() {
-    const { nodeStyle, arrowIconStyle, columns, singleSelectable, multiSelectable, singleSelectIconStyle, multiSelectIconStyle, checkedColor, uncheckedColor } = this.props;
+    const {
+      nodeStyle,
+      arrowIconStyle,
+      columns,
+      singleSelectable,
+      multiSelectable,
+      singleSelectIconStyle,
+      multiSelectIconStyle,
+      checkedColor,
+      uncheckedColor
+    } = this.props;
     const content = [];
     this.state.treeNodeList.map((item, itemIndex) => {
       content.push(
@@ -265,10 +273,10 @@ export default class Tree extends React.Component {
     return content;
   }
   render() {
-    console.log(this.state.treeNodeList);
-    const { treeStyle } = this.props;
+    console.log('this.props.searchedText===', this.props.searchedText);
+    const { treeStyle, searchedText } = this.props;
     return (
-      <table className="tree-container" style={treeStyle} key="top">
+      <table className="tree-container" style={treeStyle} key="top" data-searched-text={searchedText}>
         <tbody>{this.renderData()}</tbody>
       </table>
     );

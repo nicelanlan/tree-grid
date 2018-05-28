@@ -22,7 +22,7 @@ const styles = {
     width: '17.5px',
     height: '17.5px',
     marginLeft: '17px',
-    marginRight: '17px',
+    marginRight: '17px'
   },
   searchHint: {
     width: '110px',
@@ -42,10 +42,7 @@ const styles = {
   }
 };
 
-export default class SearchBar extends React.Component {
-  static contextTypes = {
-    intl: PropTypes.object
-  };
+export default class SearchBar extends React.PureComponent {
   onKeyDown = event => {
     if (event.keyCode === 27) {
       this.setState({
@@ -126,13 +123,10 @@ export default class SearchBar extends React.Component {
 }
 
 SearchBar.propTypes = {
-  /*  searchHitValue: PropTypes.string,*/
-  /*    validation: PropTypes.array,*/
   componentStyle: PropTypes.object,
   inputStyle: PropTypes.object,
   underlineStyle: PropTypes.object,
   hintText: PropTypes.string,
   hintStyle: PropTypes.object,
   onSearchBarChange: PropTypes.func
-  //data: PropTypes.oneOfType([PropTypes.object, PropTypes.array])
 };
