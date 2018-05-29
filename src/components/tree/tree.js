@@ -7,14 +7,17 @@ import TreeNode from './tree-node';
 
 export default class Tree extends React.Component {
   static defaultProps = {
-    expanded: false,
+    expanded: true,
+    checked: false,
     singleSelectable: false,
     multiSelectable: false,
     searchable: false,
     branchNodeSelectable: false,
-    checked: false,
     parentRelated: false,
-    valueColumn: 'id'
+    valueColumn: 'id',
+    nodeStyle: {
+      paddingLeft: 10
+    },
   };
 
   constructor(props) {
@@ -267,7 +270,6 @@ export default class Tree extends React.Component {
   }
 
   getSelectData(treeNodeList) {
-    console.log('treenodelist====*&*', treeNodeList);
     const finalList = [];
     treeNodeList.map(item => {
       if (item.checked) {
@@ -338,7 +340,6 @@ export default class Tree extends React.Component {
     return content;
   }
   render() {
-    console.log(' this.state.treenodelist====', this.state.treeNodeList);
     const { className, treeStyle } = this.props;
     return (
       <table className={className} style={treeStyle} key="top">
@@ -353,12 +354,12 @@ Tree.propTypes = {
   defaultValue: PropTypes.any,
   dataSource: PropTypes.array.isRequired,
   columns: PropTypes.array.isRequired,
-  valueColumn: PropTypes.string.isRequired,
-  expanded: PropTypes.bool.isRequired,
-  checked: PropTypes.bool.isRequired,
+  valueColumn: PropTypes.string,
+  expanded: PropTypes.bool,
+  checked: PropTypes.bool,
   singleSelectable: PropTypes.bool,
   multiSelectable: PropTypes.bool,
-  searchable: PropTypes.bool.isRequired,
+  searchable: PropTypes.bool,
   searchedText: PropTypes.string,
   branchNodeSelectable: PropTypes.bool,
   parentRelated: PropTypes.bool,
@@ -366,9 +367,7 @@ Tree.propTypes = {
   arrowIconStyle: PropTypes.object,
   singleSelectIconStyle: PropTypes.object,
   multiSelectIconStyle: PropTypes.object,
-  nodeStyle: PropTypes.shape({
-    paddingLeft: PropTypes.number.isRequired,
-  }),
+  nodeStyle: PropTypes.object,
   checkedColor: PropTypes.string,
   uncheckedColor: PropTypes.string
 };

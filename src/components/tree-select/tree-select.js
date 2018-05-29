@@ -13,21 +13,7 @@ export default class TreeSelect extends React.PureComponent {
     };
   }
 
-  static defaultProps = {
-    tree: {
-      expanded: false,
-      singleSelectable: false,
-      multiSelectable: false,
-      searchable: true,
-      branchNodeSelectable: false,
-      checked: false,
-      parentRelated: false,
-      valueColumn: 'id'
-    }
-  };
-
   onSearchBarChange(value) {
-    console.log(value);
     this.setState({
       searchedValue: value
     });
@@ -108,9 +94,9 @@ TreeSelect.propTypes = {
     defaultValue: PropTypes.any,
     dataSource: PropTypes.array.isRequired,
     columns: PropTypes.array.isRequired,
-    valueColumn: PropTypes.string.isRequired,
-    expanded: PropTypes.bool.isRequired,
-    checked: PropTypes.bool.isRequired,
+    valueColumn: PropTypes.string,
+    expanded: PropTypes.bool,
+    checked: PropTypes.bool,
     singleSelectable: PropTypes.bool,
     multiSelectable: PropTypes.bool,
     branchNodeSelectable: PropTypes.bool,
@@ -118,9 +104,7 @@ TreeSelect.propTypes = {
     arrowIconStyle: PropTypes.object,
     singleSelectIconStyle: PropTypes.object,
     multiSelectIconStyle: PropTypes.object,
-    nodeStyle: PropTypes.shape({
-      paddingLeft: PropTypes.number.isRequired,
-    }),
+    nodeStyle: PropTypes.object,
     checkedColor: PropTypes.string,
     uncheckedColor: PropTypes.string,
   }),

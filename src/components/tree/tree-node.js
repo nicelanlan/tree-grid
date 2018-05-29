@@ -1,6 +1,6 @@
-import React from "react";
-import Checkbox from "material-ui/Checkbox";
-import { RadioButton, RadioButtonGroup } from "material-ui/RadioButton";
+import React from 'react';
+import Checkbox from 'material-ui/Checkbox';
+import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
 import ActionArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down';
 import ActionArrowRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right';
 import CheckedCheckbox from 'material-ui/svg-icons/toggle/check-box';
@@ -9,31 +9,30 @@ import UnCheckedCheckbox from 'material-ui/svg-icons/toggle/check-box-outline-bl
 import CheckedRadioButton from 'material-ui/svg-icons/toggle/radio-button-checked';
 import UncheckedRadioButton from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 
-// https://github.com/react-component/tree/blob/master/src/TreeNode.jsx
 export default class TreeNode extends React.PureComponent {
   constructor() {
     super();
     this.state = {
-      display: false,
+      display: false
     };
   }
 
   componentDidMount() {
     this.setState({
-      display: this.props.expanded || this.props.parentExpanded ? "table-ow" : "none"
+      display: this.props.expanded || this.props.parentExpanded ? 'table-row' : 'none'
     });
   }
 
   expandedElement(treeIndex, element) {
-    const pattern = new RegExp(`^${treeIndex}-\\d$`, "g");
+    const pattern = new RegExp(`^${treeIndex}-\\d$`, 'g');
     if (pattern.test(element.dataset.treeIndex)) {
-      element.style.display = "table-row";
+      element.style.display = 'table-row';
     }
   }
 
   collapseElement(treeIndex, element) {
     if (element.dataset.treeIndex.startsWith(treeIndex)) {
-      element.style.display = "none";
+      element.style.display = 'none';
     }
   }
 
@@ -48,7 +47,7 @@ export default class TreeNode extends React.PureComponent {
 
   onClickHandler(e) {
     e.stopPropagation();
-    if (e.target.nodeName.toLowerCase() === "input") {
+    if (e.target.nodeName.toLowerCase() === 'input') {
       return;
     }
     if (this.props.isLeaf) {
@@ -61,19 +60,7 @@ export default class TreeNode extends React.PureComponent {
   }
 
   selectTreeNode(e, value) {
-    e.stopPropagation();
-    // this.resetRadioButtonChecked();
-    // e.target.checked = true;
-    this.setState({
-    });
     this.props.onSelect(this.props.index, e.currentTarget.checked);
-  }
-
-  resetRadioButtonChecked() {
-    const nodeList = document.getElementsByName("tree-grid-radio-button");
-    for (let i = 0; i < nodeList.length; i++) {
-      nodeList[i].checked = false;
-    }
   }
 
   getArrowIconStyle() {
@@ -81,7 +68,7 @@ export default class TreeNode extends React.PureComponent {
     return {
       ...arrowIconStyle,
       verticalAlign: 'middle',
-      visibility: isLeaf ? "hidden" : "visible"
+      visibility: isLeaf ? 'hidden' : 'visible'
     };
   }
 
@@ -100,7 +87,7 @@ export default class TreeNode extends React.PureComponent {
             width: item.width
           };
           return (
-            <td className="tree-node-item" key={`p${data.id}${index}`} style={style}>
+            <td key={`p${data.id}${index}`} style={style}>
               {value}
             </td>
           );
@@ -119,15 +106,12 @@ export default class TreeNode extends React.PureComponent {
           onChange={this.selectTreeNode.bind(this)}
         >
           <RadioButton
-            // checked={checked}
             value={index}
-            label=""
-            checkedIcon={<CheckedRadioButton style={{fill: checkedColor}} />}
-            uncheckedIcon={<UncheckedRadioButton style={{fill: uncheckedColor}} />}
+            checkedIcon={<CheckedRadioButton style={{ fill: checkedColor }} />}
+            uncheckedIcon={<UncheckedRadioButton style={{ fill: uncheckedColor }} />}
             style={singleSelectIconStyle}
           />
         </RadioButtonGroup>
-        {/* <input type="radio" onClick={this.selectTreeNode.bind(this)} /> */}
       </td>
     );
   }
@@ -138,19 +122,18 @@ export default class TreeNode extends React.PureComponent {
       <td>
         <Checkbox
           checked={checked}
-          checkedIcon={<CheckedCheckbox style={{fill: checkedColor}} />}
+          checkedIcon={<CheckedCheckbox style={{ fill: checkedColor }} />}
           uncheckedIcon={
             halfChecked ? (
-              <HalfCheckedCheckbox style={{fill: uncheckedColor}} />
+              <HalfCheckedCheckbox style={{ fill: uncheckedColor }} />
             ) : (
-              <UnCheckedCheckbox style={{fill: uncheckedColor}} />
+              <UnCheckedCheckbox style={{ fill: uncheckedColor }} />
             )
           }
           label=""
           style={multiSelectIconStyle}
           onCheck={this.selectTreeNode.bind(this)}
         />
-        {/* <input type="checkbox" checked={checked} onClick={this.selectTreeNode.bind(this)} /> */}
       </td>
     );
   }
@@ -170,25 +153,16 @@ export default class TreeNode extends React.PureComponent {
       isLeaf,
       branchNodeSelectable
     } = this.props;
-    const dataIconStyle = {
-      height: nodeStyle.nodeHeight,
-      paddingRight: 40
-    };
+    // const dataIconStyle = {
+    //   height: nodeStyle.nodeHeight,
+    //   paddingRight: 40
+    // };
     const iconArrow = expanded ? (
       <ActionArrowDown style={this.getArrowIconStyle()} />
     ) : (
       <ActionArrowRight style={this.getArrowIconStyle()} />
     );
-    const showSelect = branchNodeSelectable || (!branchNodeSelectable && isLeaf);
-    let selectElement = '';
-    if (showSelect) {
-      if (singleSelectable) {
-        selectElement = this.getSingleSelectElement();
-      }
-      if (multiSelectable) {
-        selectElement = this.getMultiSelectElement();
-      }
-    }
+    const showSelect = (branchNodeSelectable || (!branchNodeSelectable && isLeaf)) && (singleSelectable || multiSelectable);
     return (
       <tr
         className={`tree-node-li ${className}`}
@@ -199,17 +173,17 @@ export default class TreeNode extends React.PureComponent {
         style={(nodeStyle, { display: this.state.display })}
         onClick={this.onClickHandler.bind(this)}
       >
-        {selectElement}
-        <td key={`div${data.id}`} style={dataIconStyle}>
+        {showSelect && (multiSelectable ? this.getMultiSelectElement() : this.getSingleSelectElement())}
+        <td key={`div${data.id}`}>
           <span
             style={{
-              display: "inline-block",
-              width: nodeStyle.paddingLeft * (deepth -1),
+              display: 'inline-block',
+              width: nodeStyle.paddingLeft * (deepth - 1),
               height: 1
             }}
           />
           {!isLeaf && iconArrow}
-          <span style={{ display: "inline-block" }}>{data[columns[0].dataIndex]}</span>
+          <span style={{ display: 'inline-block' }}>{data[columns[0].dataIndex]}</span>
         </td>
         {this.renderData()}
       </tr>

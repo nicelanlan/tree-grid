@@ -45,10 +45,10 @@ class App extends Component {
       dataSource: multipleDataList,
       columns: columns,
       valueColumn: 'id',
-      expanded: true,
-      singleSelectable: true,
+      // expanded: true,
+      // checked: false,
+      // singleSelectable: true,
       multiSelectable: true,
-      checked: false,
       branchNodeSelectable: true,
       treeStyle: {
         margin: '0 16px'
@@ -62,7 +62,7 @@ class App extends Component {
       multiSelectIconStyle: {},
       nodeStyle: {
         paddingLeft: 40,
-        nodeHeight: 40,
+        height: 80,
         fontSize: 16
       },
       checkedColor: '#ee0000',
