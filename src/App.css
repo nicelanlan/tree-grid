@@ -27,24 +27,40 @@
   to { transform: rotate(360deg); }
 }
 
+.tree-container td {
+  padding: 0;
+  margin: 0;
+  border: none;
+}
+.tree-container {
+  position: relative;
+  text-align: left;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-collapse: collapse;
+}
+
+.tree-node-item {
+  position: relative;
+}
 
 .tree-container tr {
   line-height: 40px;
 }
 
-tr:nth-of-type(odd)
+.tree-container tr:nth-of-type(odd)
 {
   background:#f4f4f4;
 }
-tr:nth-of-type(even)
+.tree-container tr:nth-of-type(even)
 {
   background:#fff;
 }
 
-tr {
+.tree-container tr {
   height: 40px;
   line-height: 40px;
 }
-tr:hover {
+.tree-container tr:hover {
   background-color: rgba(255, 0, 0, 0.1);
 }

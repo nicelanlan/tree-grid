@@ -2,16 +2,17 @@ import React, { Component } from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
 import './App.css';
-import TreeSelect from './tree-select';
+import TreeSelect from './components/tree-select';
+// import Tree from './components/tree';
 import { multipleDataList } from './data/multiple';
 
 class App extends Component {
   componentDidMount() {}
-  searchFn(value) {
-    console.log(value);
+  afterSelect(value) {
+    console.log('you select value is ', value);
   }
   render() {
-    const columns2 = [
+    const columns = [
       {
         dataIndex: 'name',
         width: 200
@@ -26,6 +27,9 @@ class App extends Component {
         margin: '10px 16px 18px'
       },
       inputStyle: {},
+      textFieldStyle: {
+        width: '100%',
+      },
       hintText: 'search',
       hintStyle: {
         fontFamily: 'Roboto',
@@ -36,9 +40,10 @@ class App extends Component {
       searchFn: this.searchFn
     };
     const treeProps = {
+      className: 'tree-container',
       defaultValue: [3,4],
       dataSource: multipleDataList,
-      columns: columns2,
+      columns: columns,
       valueColumn: 'id',
       expanded: true,
       singleSelectable: true,
@@ -69,6 +74,7 @@ class App extends Component {
           <TreeSelect
             searchBar={searchBar}
             tree={treeProps}
+            afterSelect={this.afterSelect.bind(this)}
           />
           {/* <SearchBar
             componentStyle={{
@@ -85,9 +91,10 @@ class App extends Component {
             searchFn={this.searchFn}
           /> */}
           {/* <Tree
+            className={'tree-container'}
             defaultValue={[3, 4]}
             dataSource={multipleDataList}
-            columns={columns2}
+            columns={columns}
             valueColumn={'id'}
             expanded={true}
             singleSelectable={true}

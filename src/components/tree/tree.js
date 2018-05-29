@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import TreeNode from './tree-node';
 
-import './tree.css';
+// import './tree.css';
 
 export default class Tree extends React.Component {
   static defaultProps = {
@@ -13,20 +13,52 @@ export default class Tree extends React.Component {
     searchable: false,
     branchNodeSelectable: false,
     checked: false,
+    parentRelated: false,
     valueColumn: 'id'
   };
 
   constructor(props) {
     super(props);
     this.state = {
-      treeNodeList: []
+      treeNodeList: [],
+      defaultSelectNodeList: [],
+      selectedNodeDataList: [],
+      isFirstTimeRender: true,
     };
   }
 
   componentDidMount() {
-    const { defaultValue, dataSource, columns, valueColumn } = this.props;
+    const { defaultSelectNodeList } = this.state;
+    const treeNodeList = this.setFinalTreeNodeList(this.props, defaultSelectNodeList);
+
+    this.setSelectDataToState(treeNodeList);
+
+    this.setState({
+      defaultSelectNodeList,
+    });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.searchedText !== this.props.searchedText) {
+      const treeNodeList = this.setFinalTreeNodeList(nextProps, this.state.treeNodeList);
+      this.setSelectDataToState(treeNodeList);
+    }
+  }
+
+  setSelectDataToState(treeNodeList) {
+    if (this.props.afterSelect) {
+      const selectedNodeDataList = this.getSelectData(treeNodeList);
+      this.props.afterSelect(selectedNodeDataList);
+      this.setState({
+        selectedNodeDataList,
+      });
+    }
+  }
+
+  setFinalTreeNodeList(props, defaultSelectNodeList) {
     const treeNodeList = [];
-    this.generateTreeNodeList(dataSource, columns, treeNodeList);
+    const { defaultValue, dataSource, columns, valueColumn, searchedText } = props;
+    this.generateTreeNodeList(searchedText, dataSource, columns, treeNodeList);
     treeNodeList.map((item, index) => {
       if (item === null || item === undefined) {
         treeNodeList.splice(index, 1);
@@ -34,15 +66,16 @@ export default class Tree extends React.Component {
       }
       // set default value
       const itemValue = item.data[valueColumn];
-      defaultValue.map(defaultValueItem => {
+      this.state.isFirstTimeRender && defaultValue && defaultValue.map(defaultValueItem => {
         if (itemValue === defaultValueItem) {
           item.checked = true;
+          defaultSelectNodeList && defaultSelectNodeList.push(item.index);
         }
         return true;
       });
 
       const childrenNodes = item.childrenNodes;
-      if (childrenNodes) {
+      if (childrenNodes && childrenNodes.length > 0) {
         item.children = childrenNodes.map(childItem => {
           return childItem.index;
         });
@@ -50,11 +83,14 @@ export default class Tree extends React.Component {
       return treeNodeList;
     });
     this.setState({
-      treeNodeList: treeNodeList
+      treeNodeList,
+      isFirstTimeRender: false,
     });
+    return treeNodeList;
   }
 
   generateTreeNodeList(
+    searchedText,
     data,
     columns,
     treeNodeList,
@@ -64,11 +100,12 @@ export default class Tree extends React.Component {
     parentExpanded = true
   ) {
     return data.map((item, itemIndex) => {
-      const isHitSearchBool = this.isHitSearch(item);
-      const children = this.getChildrenBySearchText(item);
+      const originTreeNode = this.getTreeNodeById(item.id, this.state.treeNodeList);
+      const isHitSearchBool = this.isHitSearch(item, searchedText, columns);
+      const children = this.getChildrenBySearchText(item, searchedText);
       const treeIndex = parentTreeIndex ? `${parentTreeIndex}-${itemIndex}` : itemIndex + '';
       const treeNode = {
-        key: `treenode${deepth}${item.key || item.id}`,
+        key: `treenode${deepth}${item.id || item.id}`,
         data: item,
         index: treeNodeList.length,
         parent: parentIndex,
@@ -76,33 +113,34 @@ export default class Tree extends React.Component {
         treeIndex,
         children: children,
         isLeaf: children && children.length === 0,
-        expanded: this.props.expanded,
-        checked: this.props.checked,
-        halfChecked: false,
+        expanded: originTreeNode ? originTreeNode.expanded : this.props.expanded,
+        checked: originTreeNode ? originTreeNode.checked : this.props.checked,
+        halfChecked: originTreeNode ? originTreeNode.halfChecked : false,
         parentExpanded,
         branchNodeSelectable: this.props.branchNodeSelectable
       };
       if (isHitSearchBool) {
         treeNodeList.push(treeNode);
       }
-      if (children) {
+      if (item.children && item.children.length > 0) {
         const childrenNodes = this.generateTreeNodeList(
-          children,
+          searchedText,
+          item.children,
           columns,
           treeNodeList,
-          treeNode.index,
+          isHitSearchBool ? treeNode.index : -1,
           treeIndex,
           deepth + 1,
-          this.props.expanded
+          originTreeNode ? originTreeNode.expanded : this.props.expanded
         );
         treeNode.childrenNodes = childrenNodes;
       }
-      return isHitSearchBool ? treeNode : null;
+      return isHitSearchBool ? treeNode : {};
     });
   }
 
-  getChildrenBySearchText(data) {
-    const { searchedText, columns } = this.props;
+  getChildrenBySearchText(data, searchedText) {
+    const { columns } = this.props;
     const childrenList = [];
     if (!data || !data.children || data.children.length === 0) {
       return childrenList;
@@ -126,8 +164,7 @@ export default class Tree extends React.Component {
     return childrenList;
   }
 
-  isHitSearch(data) {
-    const { searchedText, columns } = this.props;
+  isHitSearch(data, searchedText, columns) {
     if (!searchedText) {
       return true;
     }
@@ -155,8 +192,17 @@ export default class Tree extends React.Component {
 
   onSelect(index, selected) {
     const { treeNodeList } = this.state;
-    const { singleSelectable, multiSelectable } = this.props;
-    if (singleSelectable) {
+    const { singleSelectable, multiSelectable, afterSelect, parentRelated } = this.props;
+
+    if (multiSelectable) {
+      treeNodeList[index].checked = selected;
+      if (parentRelated) {
+        this.resetAttr('halfChecked', false, treeNodeList);
+        this.setChildrenAttr(index, 'checked', selected, treeNodeList);
+        this.setParentChecked(index, 'checked', selected, treeNodeList);
+      }
+
+    } else if (singleSelectable) {
       this.resetAttr('checked', false, treeNodeList);
       for (let i = 0; i < treeNodeList.length; i++) {
         if (i === index) {
@@ -165,15 +211,12 @@ export default class Tree extends React.Component {
         }
       }
     }
-    if (multiSelectable) {
-      this.resetAttr('halfChecked', false, treeNodeList);
-      treeNodeList[index].checked = selected;
-      this.setChildrenAttr(index, 'checked', selected, treeNodeList);
-      this.setParentChecked(index, 'checked', selected, treeNodeList);
-    }
+    const selectedNodeDataList = this.getSelectData(treeNodeList);
     this.setState({
-      treeNodeList
+      treeNodeList,
+      selectedNodeDataList
     });
+    afterSelect && afterSelect(selectedNodeDataList);
   }
 
   resetAttr(attrName, attrValue, treeNodeList) {
@@ -199,16 +242,13 @@ export default class Tree extends React.Component {
     if (parentIndex === -1) {
       return true;
     }
-    if (!attrValue) {
-      treeNodeList[parentIndex][attrName] = false;
-    } else {
-      const parent = treeNodeList[parentIndex];
-      const childrenForParent = parent.children;
-      const isAllChildrenCheckedBool = this.isAllChildrenChecked(childrenForParent, treeNodeList);
-      treeNodeList[parentIndex][attrName] = isAllChildrenCheckedBool;
-      if (!isAllChildrenCheckedBool) {
-        treeNodeList[parentIndex].halfChecked = true;
-      }
+    treeNodeList[parentIndex][attrName] = attrValue;
+    const parent = treeNodeList[parentIndex];
+    const childrenForParent = parent.children;
+    const isAllChildrenCheckedBool = this.isAllChildrenChecked(childrenForParent, treeNodeList);
+    treeNodeList[parentIndex][attrName] = isAllChildrenCheckedBool;
+    if (!isAllChildrenCheckedBool) {
+      treeNodeList[parentIndex].halfChecked = true;
     }
     // set parent's parent
     this.setParentChecked(parentIndex, attrName, attrValue, treeNodeList);
@@ -224,6 +264,31 @@ export default class Tree extends React.Component {
       childrenForChild && childrenForChild.length > 0 && this.isAllChildrenChecked(childrenForChild, treeNodeList);
     }
     return true;
+  }
+
+  getSelectData(treeNodeList) {
+    console.log('treenodelist====*&*', treeNodeList);
+    const finalList = [];
+    treeNodeList.map(item => {
+      if (item.checked) {
+        const nodeData = item.data;
+        const finalData = Object.assign({}, nodeData);
+        delete finalData.children;
+        finalList.push(finalData)
+      }
+      return true;
+    });
+    return finalList;
+  }
+
+  getTreeNodeById(id, treeNodeList) {
+    for (let i = 0; i < treeNodeList.length; i++) {
+      const item = treeNodeList[i];
+      if (item.data.id === id) {
+        return item;
+      }
+    }
+    return null;
   }
 
   renderData() {
@@ -273,10 +338,10 @@ export default class Tree extends React.Component {
     return content;
   }
   render() {
-    console.log('this.props.searchedText===', this.props.searchedText);
-    const { treeStyle, searchedText } = this.props;
+    console.log(' this.state.treenodelist====', this.state.treeNodeList);
+    const { className, treeStyle } = this.props;
     return (
-      <table className="tree-container" style={treeStyle} key="top" data-searched-text={searchedText}>
+      <table className={className} style={treeStyle} key="top">
         <tbody>{this.renderData()}</tbody>
       </table>
     );
@@ -284,22 +349,26 @@ export default class Tree extends React.Component {
 }
 
 Tree.propTypes = {
+  className: PropTypes.string,
   defaultValue: PropTypes.any,
   dataSource: PropTypes.array.isRequired,
   columns: PropTypes.array.isRequired,
   valueColumn: PropTypes.string.isRequired,
   expanded: PropTypes.bool.isRequired,
   checked: PropTypes.bool.isRequired,
-  singleSelectable: PropTypes.bool.isRequired,
-  multiSelectable: PropTypes.bool.isRequired,
+  singleSelectable: PropTypes.bool,
+  multiSelectable: PropTypes.bool,
   searchable: PropTypes.bool.isRequired,
   searchedText: PropTypes.string,
   branchNodeSelectable: PropTypes.bool,
+  parentRelated: PropTypes.bool,
   treeStyle: PropTypes.object,
   arrowIconStyle: PropTypes.object,
   singleSelectIconStyle: PropTypes.object,
   multiSelectIconStyle: PropTypes.object,
-  nodeStyle: PropTypes.object,
+  nodeStyle: PropTypes.shape({
+    paddingLeft: PropTypes.number.isRequired,
+  }),
   checkedColor: PropTypes.string,
   uncheckedColor: PropTypes.string
 };

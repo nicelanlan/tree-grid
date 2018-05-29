@@ -114,6 +114,7 @@ export default class SearchBar extends React.PureComponent {
             underlineShow={false}
             hintText={this.state.hintText}
             hintStyle={Object.assign({}, styles.searchHint, this.props.hintStyle)}
+            style={this.props.textFieldStyle}
             onKeyDown={this.onKeyDown}
           />
         </Paper>
@@ -128,5 +129,6 @@ SearchBar.propTypes = {
   underlineStyle: PropTypes.object,
   hintText: PropTypes.string,
   hintStyle: PropTypes.object,
+  textFieldStyle: PropTypes.object,
   onSearchBarChange: PropTypes.func
 };

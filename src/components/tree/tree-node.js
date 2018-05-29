@@ -96,11 +96,11 @@ export default class TreeNode extends React.PureComponent {
             return null;
           }
           const value = data[item.dataIndex];
-          const style = {
+          const style = item.width && {
             width: item.width
           };
           return (
-            <td className="tree-node-item" key={`p${data.key}${index}`} style={style}>
+            <td className="tree-node-item" key={`p${data.id}${index}`} style={style}>
               {value}
             </td>
           );
@@ -180,11 +180,7 @@ export default class TreeNode extends React.PureComponent {
       <ActionArrowRight style={this.getArrowIconStyle()} />
     );
     const showSelect = branchNodeSelectable || (!branchNodeSelectable && isLeaf);
-    let selectElement = (
-      <td>
-        <span style={{ display: "inline-block" }} />
-      </td>
-    );
+    let selectElement = '';
     if (showSelect) {
       if (singleSelectable) {
         selectElement = this.getSingleSelectElement();
@@ -193,17 +189,10 @@ export default class TreeNode extends React.PureComponent {
         selectElement = this.getMultiSelectElement();
       }
     }
-    // const selectElement = showSelect
-    //   ? singleSelectable
-    //     ? this.getSingleSelectElement()
-    //     : multiSelectable
-    //       ? this.getMultiSelectElement()
-    //       : null
-    //   : null;
     return (
       <tr
         className={`tree-node-li ${className}`}
-        key={`li${data.key}`}
+        key={`li${data.id}`}
         data-expanded={expanded}
         data-index={index}
         data-tree-index={treeIndex}
@@ -211,12 +200,11 @@ export default class TreeNode extends React.PureComponent {
         onClick={this.onClickHandler.bind(this)}
       >
         {selectElement}
-        {null}
-        <td key={`div${data.key}`} style={dataIconStyle}>
+        <td key={`div${data.id}`} style={dataIconStyle}>
           <span
             style={{
               display: "inline-block",
-              width: nodeStyle.paddingLeft * deepth,
+              width: nodeStyle.paddingLeft * (deepth -1),
               height: 1
             }}
           />
