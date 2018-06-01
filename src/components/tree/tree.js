@@ -7,6 +7,7 @@ import TreeNode from './tree-node';
 
 export default class Tree extends React.Component {
   static defaultProps = {
+    className: 'tree-container',
     expanded: true,
     checked: false,
     singleSelectable: false,
@@ -15,9 +16,9 @@ export default class Tree extends React.Component {
     branchNodeSelectable: false,
     parentRelated: false,
     valueColumn: 'id',
-    nodeStyle: {
-      paddingLeft: 10
-    },
+    nodeStyle: {},
+    checkedColor: '#ee0000',
+    uncheckedColor: '#999999'
   };
 
   constructor(props) {
@@ -77,12 +78,15 @@ export default class Tree extends React.Component {
         return true;
       });
 
+      let hasChild = false;
       const childrenNodes = item.childrenNodes;
       if (childrenNodes && childrenNodes.length > 0) {
         item.children = childrenNodes.map(childItem => {
-          return childItem.index;
+          hasChild = hasChild ? hasChild : childItem !== null;
+          return childItem ? childItem.index : null;
         });
       }
+      item.isLeaf = !hasChild;
       return treeNodeList;
     });
     this.setState({
@@ -100,12 +104,11 @@ export default class Tree extends React.Component {
     parentIndex = -1,
     parentTreeIndex = '',
     deepth = 1,
-    parentExpanded = true
+    parentExpanded = true,
   ) {
     return data.map((item, itemIndex) => {
       const originTreeNode = this.getTreeNodeById(item.id, this.state.treeNodeList);
       const isHitSearchBool = this.isHitSearch(item, searchedText, columns);
-      const children = this.getChildrenBySearchText(item, searchedText);
       const treeIndex = parentTreeIndex ? `${parentTreeIndex}-${itemIndex}` : itemIndex + '';
       const treeNode = {
         key: `treenode${deepth}${item.id || item.id}`,
@@ -114,8 +117,6 @@ export default class Tree extends React.Component {
         parent: parentIndex,
         deepth: deepth,
         treeIndex,
-        children: children,
-        isLeaf: children && children.length === 0,
         expanded: originTreeNode ? originTreeNode.expanded : this.props.expanded,
         checked: originTreeNode ? originTreeNode.checked : this.props.checked,
         halfChecked: originTreeNode ? originTreeNode.halfChecked : false,
@@ -123,6 +124,12 @@ export default class Tree extends React.Component {
         branchNodeSelectable: this.props.branchNodeSelectable
       };
       if (isHitSearchBool) {
+        // set the node to parent's node's childrenNodes
+        if (parentIndex !== -1) {
+          const childrenNodes = treeNodeList[parentIndex].childrenNodes || [];
+          childrenNodes[childrenNodes.length] = treeNode;
+          treeNodeList[parentIndex].childrenNodes = childrenNodes;
+        }
         treeNodeList.push(treeNode);
       }
       if (item.children && item.children.length > 0) {
@@ -131,40 +138,15 @@ export default class Tree extends React.Component {
           item.children,
           columns,
           treeNodeList,
-          isHitSearchBool ? treeNode.index : -1,
-          treeIndex,
-          deepth + 1,
+          isHitSearchBool ? treeNode.index : parentIndex, // parentIndex
+          isHitSearchBool ? treeIndex : parentTreeIndex, // parentTreeIndex
+          isHitSearchBool ? deepth + 1 : deepth, // deepth
           originTreeNode ? originTreeNode.expanded : this.props.expanded
         );
-        treeNode.childrenNodes = childrenNodes;
+        // treeNode.childrenNodes = childrenNodes;
       }
-      return isHitSearchBool ? treeNode : {};
+      return isHitSearchBool ? treeNode : null;
     });
-  }
-
-  getChildrenBySearchText(data, searchedText) {
-    const { columns } = this.props;
-    const childrenList = [];
-    if (!data || !data.children || data.children.length === 0) {
-      return childrenList;
-    }
-    if (!searchedText) {
-      return data.children;
-    }
-    data.children.map(dataItem => {
-      for (let i = 0; i < columns.length; i++) {
-        const item = columns[i];
-        if (
-          dataItem[item.dataIndex] &&
-          dataItem[item.dataIndex].toLowerCase().indexOf(searchedText.toLowerCase()) !== -1
-        ) {
-          childrenList.push(dataItem);
-          return true;
-        }
-      }
-      return childrenList;
-    });
-    return childrenList;
   }
 
   isHitSearch(data, searchedText, columns) {
@@ -233,6 +215,9 @@ export default class Tree extends React.Component {
     const children = treeNodeList[index].children;
     children &&
       children.map(item => {
+        if (!item) {
+          return false;
+        }
         treeNodeList[item][attrName] = attrValue;
         treeNodeList[item].halfChecked = false;
         this.setChildrenAttr(item, attrName, attrValue, treeNodeList);
