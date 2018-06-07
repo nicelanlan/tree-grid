@@ -92,7 +92,7 @@ export default class Tree extends React.Component {
   }
 
   render() {
-    console.log('treeNodeList====', this.state.treeNodeList)
+    console.log('treeNodeList====', this.state.treeNodeList);
     const { className, treeStyle, singleSelectable, multiSelectable } = this.props;
     return (
       <table className={className} style={treeStyle} key="top">
@@ -121,7 +121,8 @@ export default class Tree extends React.Component {
     // search text changed or datasource changed
     if (
       nextProps.searchedText !== this.props.searchedText ||
-      (nextProps.dataSource.length !== 0 && nextProps.dataSource.length !== this.props.dataSource.length)
+      (nextProps.dataSource.length !== 0 &&
+        nextProps.dataSource.length !== this.props.dataSource.length)
     ) {
       treeNodeList = this.setFinalTreeNodeListToState(nextProps, this.state.treeNodeList);
       // when search something on tree, should expand all nodes

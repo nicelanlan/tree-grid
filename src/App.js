@@ -19,10 +19,12 @@ class App extends Component {
     const columns = [
       {
         dataIndex: 'name',
+        text: 'name',
         width: 200,
       },
       {
         dataIndex: 'desc',
+        text: 'desc',
         width: 200,
       },
     ];

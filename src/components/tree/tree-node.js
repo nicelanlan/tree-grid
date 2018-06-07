@@ -198,6 +198,9 @@ export default class TreeNode extends React.PureComponent {
           data-index={index}
           data-tree-index={treeIndex}
           onClick={this.onArrowIconClickHandler}
+          style={{
+            width: data[columns[0].width]
+          }}
         >
           {/* Tree element's indentation */}
           <span style={{ display: 'inline-block', width: nodePaddingLeft, height: 1 }} />
@@ -217,17 +220,14 @@ export default class TreeNode extends React.PureComponent {
    */
   onArrowIconClickHandler = e => {
     e.stopPropagation();
-    const currentTarget = e.currentTarget;
-    const treeIndex = currentTarget.dataset.treeIndex;
-    this.toggleExpandedTreeNodes(treeIndex, currentTarget);
+    this.toggleExpandedTreeNodes();
   };
 
   /**
    * Expand it's children to be showed or collapse it's children and grandchildren to be hide.
    * @param {string} treeIndex
-   * @param {object} currentTarget
    */
-  toggleExpandedTreeNodes(treeIndex, currentTarget) {
+  toggleExpandedTreeNodes() {
     if (this.props.isLeaf) {
       return;
     }
