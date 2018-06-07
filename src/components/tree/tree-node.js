@@ -1,429 +1,267 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Checkbox from 'material-ui/Checkbox';
+import { RadioButton, RadioButtonGroup } from 'material-ui/RadioButton';
+import ActionArrowDown from 'material-ui/svg-icons/hardware/keyboard-arrow-down';
+import ActionArrowRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right';
+import CheckedCheckbox from 'material-ui/svg-icons/toggle/check-box';
+import HalfCheckedCheckbox from 'material-ui/svg-icons/toggle/indeterminate-check-box';
+import UnCheckedCheckbox from 'material-ui/svg-icons/toggle/check-box-outline-blank';
+import CheckedRadioButton from 'material-ui/svg-icons/toggle/radio-button-checked';
+import UncheckedRadioButton from 'material-ui/svg-icons/toggle/radio-button-unchecked';
 
-import TreeNode from './tree-node';
+const defaultSelectIconStyle = {
+  width: 24,
+  height: 24,
+  marginLeft: 6
+};
 
-export default class Tree extends React.Component {
-  static defaultProps = {
-    className: 'tree-container',
-    expanded: true,
-    checked: false,
-    singleSelectable: false,
-    multiSelectable: false,
-    searchable: false,
-    branchNodeSelectable: false,
-    parentRelated: false,
-    valueColumn: 'id',
-    nodeStyle: {},
-    checkedColor: '#ee0000',
-    uncheckedColor: '#999999'
-  };
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      treeNodeList: [],
-      defaultSelectNodeList: [],
-      selectedNodeDataList: [],
-      isFirstTimeRender: true
+/**
+ * Each node in a tree, which is a <tr> element.
+ *
+ * @export TreeNode
+ * @class TreeNode
+ * @extends {React.PureComponent}
+ */
+export default class TreeNode extends React.PureComponent {
+  /**
+   * Return the arrow icon's style
+   * @returns {object} the arrow icon's style
+   */
+  getArrowIconStyle() {
+    const { arrowIconStyle, isLeaf } = this.props;
+    return {
+      color: '#000',
+      opacity: 0.54,
+      paddingRight: 16,
+      verticalAlign: 'middle',
+      visibility: isLeaf ? 'hidden' : 'visible',
+      ...arrowIconStyle
     };
   }
 
-  componentDidMount() {
-    const { defaultSelectNodeList } = this.state;
-    const treeNodeList = this.setFinalTreeNodeListToState(this.props, defaultSelectNodeList);
-
-    this.setSelectDataToState(treeNodeList);
-
-    this.setState({
-      defaultSelectNodeList
-    });
-  }
-
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.searchedText !== this.props.searchedText) {
-      const treeNodeList = this.setFinalTreeNodeListToState(nextProps, this.state.treeNodeList);
-      this.setSelectDataToState(treeNodeList);
-    }
-  }
-
   /**
-   * Iterator the whole tree, add index of tree-node that with a checked radio button/checkbox to state[selectedNodeDataList]
-   * @param {array} treeNodeList 
+   * Table cell to be showed on a document with data.
+   * @returns {Array} HTML
    */
-  setSelectDataToState(treeNodeList) {
-    if (this.props.afterSelect) {
-      const selectedNodeDataList = this.getSelectData(treeNodeList);
-      this.props.afterSelect(selectedNodeDataList);
-      this.setState({
-        selectedNodeDataList
-      });
-    }
-  }
-
-  /**
-   * Add default checked value and children before TreeNodeList sets to state
-   * @param {object} props 
-   * @param {array} defaultSelectNodeList 
-   */
-  setFinalTreeNodeListToState(props, defaultSelectNodeList) {
-    const treeNodeList = [];
-    const { defaultValue, dataSource, columns, valueColumn, searchedText } = props;
-    this.generateTreeNodeList(searchedText, dataSource, columns, treeNodeList);
-    treeNodeList.map((item, index) => {
-      if (item === null || item === undefined) {
-        treeNodeList.splice(index, 1);
-        return null;
-      }
-      // set default value
-      const itemValue = item.data[valueColumn];
-      this.state.isFirstTimeRender &&
-        defaultValue &&
-        defaultValue.map(defaultValueItem => {
-          if (itemValue === defaultValueItem) {
-            item.checked = true;
-            defaultSelectNodeList && defaultSelectNodeList.push(item.index);
-          }
-          return true;
-        });
-
-      let hasChild = false;
-      const childrenNodes = item.childrenNodes;
-      if (childrenNodes && childrenNodes.length > 0) {
-        item.children = childrenNodes.map(childItem => {
-          hasChild = hasChild ? hasChild : childItem !== null;
-          return childItem ? childItem.index : null;
-        });
-      }
-      item.isLeaf = !hasChild;
-      return treeNodeList;
-    });
-    this.setState({
-      treeNodeList,
-      isFirstTimeRender: false
-    });
-    return treeNodeList;
-  }
-
-  /**
-   * Datasource is tree structure, convert to flat array structure
-   * @param {string} searchedText 
-   * @param {array} data 
-   * @param {array} columns 
-   * @param {array} treeNodeList 
-   * @param {number} parentIndex 
-   * @param {string} parentTreeIndex 
-   * @param {number} deepth 
-   * @param {bool} parentExpanded 
-   */
-  generateTreeNodeList(
-    searchedText,
-    data,
-    columns,
-    treeNodeList,
-    parentIndex = -1,
-    parentTreeIndex = '',
-    deepth = 1,
-    parentExpanded = true
-  ) {
-    return data.map((item, itemIndex) => {
-      const originTreeNode = this.getTreeNodeById(item.id, this.state.treeNodeList);
-      const isHitSearchBool = this.isHitSearch(item, searchedText, columns);
-      const treeIndex = parentTreeIndex ? `${parentTreeIndex}-${itemIndex}` : itemIndex + '';
-      const treeNode = {
-        key: `treenode${deepth}${item.id || item.id}`,
-        data: item,
-        index: treeNodeList.length,
-        parent: parentIndex,
-        deepth: deepth,
-        treeIndex,
-        expanded: originTreeNode ? originTreeNode.expanded : this.props.expanded,
-        checked: originTreeNode ? originTreeNode.checked : this.props.checked,
-        halfChecked: originTreeNode ? originTreeNode.halfChecked : false,
-        parentExpanded,
-        branchNodeSelectable: this.props.branchNodeSelectable
-      };
-      if (isHitSearchBool) {
-        // set the node to parent's node's childrenNodes
-        if (parentIndex !== -1) {
-          const childrenNodes = treeNodeList[parentIndex].childrenNodes || [];
-          childrenNodes[childrenNodes.length] = treeNode;
-          treeNodeList[parentIndex].childrenNodes = childrenNodes;
-        }
-        treeNodeList.push(treeNode);
-      }
-      if (item.children && item.children.length > 0) {
-        const childrenNodes = this.generateTreeNodeList(
-          searchedText,
-          item.children,
-          columns,
-          treeNodeList,
-          isHitSearchBool ? treeNode.index : parentIndex, // parentIndex
-          isHitSearchBool ? treeIndex : parentTreeIndex, // parentTreeIndex
-          isHitSearchBool ? deepth + 1 : deepth, // deepth
-          originTreeNode ? originTreeNode.expanded : this.props.expanded
-        );
-        // treeNode.childrenNodes = childrenNodes;
-      }
-      return isHitSearchBool ? treeNode : null;
-    });
-  }
-
-  /**
-   * If the data's field has contain the searched text, return true, otherwise return false
-   * @param {object} data 
-   * @param {string} searchedText 
-   * @param {array} columns 
-   * @returns {bool}
-   */
-  isHitSearch(data, searchedText, columns) {
-    if (!searchedText) {
-      return true;
-    }
-    for (let i = 0; i < columns.length; i++) {
-      const item = columns[i];
-      if (
-        data[item.dataIndex] &&
-        data[item.dataIndex].toLowerCase().indexOf(searchedText.toLowerCase()) !== -1
-      ) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Update the state[treeNodeList]'s field "expanded", contain it's children
-   * @param {number} index 
-   */
-  updateTreeExpanded(index) {
-    const treeNodeList = this.state.treeNodeList;
-    const clickedTreeNode = treeNodeList[index];
-    const expanded = !clickedTreeNode.expanded;
-    treeNodeList[index].expanded = expanded;
-    if (!expanded) {
-      this.setChildrenField(index, 'expanded', expanded, treeNodeList);
-    }
-    this.setState({
-      treeNodeList
-    });
-  }
-
-  /**
-   * when check or uncheck a tree-node, update the state[treeNodeList]'s field "checked", contain it's parent and children
-   * @param {number} index 
-   * @param {bool} selected 
-   */
-  onSelect(index, selected) {
-    const { treeNodeList } = this.state;
-    const { singleSelectable, multiSelectable, afterSelect, parentRelated } = this.props;
-
-    if (multiSelectable) {
-      treeNodeList[index].checked = selected;
-      if (parentRelated) {
-        this.resetField('halfChecked', false, treeNodeList);
-        this.setChildrenField(index, 'checked', selected, treeNodeList);
-        this.setParentChecked(index, 'checked', selected, treeNodeList);
-      }
-    } else if (singleSelectable) {
-      this.resetField('checked', false, treeNodeList);
-      for (let i = 0; i < treeNodeList.length; i++) {
-        if (i === index) {
-          treeNodeList[i].checked = true;
-          break;
-        }
-      }
-    }
-    const selectedNodeDataList = this.getSelectData(treeNodeList);
-    this.setState({
-      treeNodeList,
-      selectedNodeDataList
-    });
-    afterSelect && afterSelect(selectedNodeDataList);
-  }
-
-  /**
-   * Reset the attrName to attrValue of given treeNodeList
-   * @param {string} attrName 
-   * @param {bool} attrValue 
-   * @param {array} treeNodeList 
-   */
-  resetField(attrName, attrValue, treeNodeList) {
-    treeNodeList.map(item => {
-      item[attrName] = attrValue;
-      return true;
-    });
-  }
-
-  /**
-   * Set object's children's field
-   * @param {number} index 
-   * @param {string} attrName 
-   * @param {bool} attrValue 
-   * @param {array} treeNodeList 
-   */
-  setChildrenField(index, attrName, attrValue, treeNodeList) {
-    const children = treeNodeList[index].children;
-    children &&
-      children.map(item => {
-        if (!item) {
-          return false;
-        }
-        treeNodeList[item][attrName] = attrValue;
-        treeNodeList[item].halfChecked = false;
-        this.setChildrenField(item, attrName, attrValue, treeNodeList);
-        return treeNodeList;
-      });
-  }
-
-  /**
-   * Set object's parent's "checked" field
-   * @param {number} index 
-   * @param {string} attrName 
-   * @param {bool} attrValue 
-   * @param {array} treeNodeList 
-   */
-  setParentChecked(index, attrName, attrValue, treeNodeList) {
-    const parentIndex = treeNodeList[index].parent;
-    if (parentIndex === -1) {
-      return true;
-    }
-    treeNodeList[parentIndex][attrName] = attrValue;
-    const parent = treeNodeList[parentIndex];
-    const childrenForParent = parent.children;
-    const isAllChildrenCheckedBool = this.isAllChildrenChecked(childrenForParent, treeNodeList);
-    treeNodeList[parentIndex][attrName] = isAllChildrenCheckedBool;
-    if (!isAllChildrenCheckedBool) {
-      treeNodeList[parentIndex].halfChecked = true;
-    }
-    // set parent's parent
-    this.setParentChecked(parentIndex, attrName, attrValue, treeNodeList);
-  }
-
-  /**
-   * If the whole children have been checked return true, otherwise return false
-   * @param {array} children 
-   * @param {array} treeNodeList 
-   */
-  isAllChildrenChecked(children, treeNodeList) {
-    for (let i = 0; i < children.length; i++) {
-      const childItem = treeNodeList[children[i]];
-      if (!childItem.checked) {
-        return false;
-      }
-      const childrenForChild = childItem.children;
-      childrenForChild &&
-        childrenForChild.length > 0 &&
-        this.isAllChildrenChecked(childrenForChild, treeNodeList);
-    }
-    return true;
-  }
-
-  /**
-   * Return the selected tree-node's data field
-   * @param {array} treeNodeList 
-   */
-  getSelectData(treeNodeList) {
-    const finalList = [];
-    treeNodeList.map(item => {
-      if (item.checked) {
-        const nodeData = item.data;
-        const finalData = Object.assign({}, nodeData);
-        delete finalData.children;
-        finalList.push(finalData);
-      }
-      return true;
-    });
-    return finalList;
-  }
-
-  /**
-   * Return the tree-node item by the given id.
-   * @param {number} id 
-   * @param {array} treeNodeList 
-   */
-  getTreeNodeById(id, treeNodeList) {
-    for (let i = 0; i < treeNodeList.length; i++) {
-      const item = treeNodeList[i];
-      if (item.data.id === id) {
-        return item;
-      }
-    }
-    return null;
-  }
-
   renderData() {
-    const {
-      nodeStyle,
-      arrowIconStyle,
-      columns,
-      singleSelectable,
-      multiSelectable,
-      singleSelectIconStyle,
-      multiSelectIconStyle,
-      checkedColor,
-      uncheckedColor
-    } = this.props;
+    const { data, columns } = this.props;
     const content = [];
-    this.state.treeNodeList.map((item, itemIndex) => {
-      content.push(
-        <TreeNode
-          key={item.key}
-          data={item.data}
-          columns={columns}
-          index={itemIndex}
-          treeIndex={item.treeIndex}
-          deepth={item.deepth}
-          isLeaf={item.isLeaf}
-          arrowIconStyle={arrowIconStyle}
-          nodeStyle={{ paddingLeft: 40, ...nodeStyle }}
-          expanded={item.expanded}
-          checked={item.checked}
-          halfChecked={item.halfChecked}
-          parentExpanded={item.parentExpanded}
-          singleSelectable={singleSelectable}
-          multiSelectable={multiSelectable}
-          branchNodeSelectable={item.branchNodeSelectable}
-          singleSelectIconStyle={singleSelectIconStyle}
-          multiSelectIconStyle={multiSelectIconStyle}
-          checkedColor={checkedColor}
-          uncheckedColor={uncheckedColor}
-          updateTreeExpanded={this.updateTreeExpanded.bind(this)}
-          onSelect={this.onSelect.bind(this)}
-        />
-      );
-      return content;
-    });
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+    content.push(
+      columns &&
+        columns.map((item, index) => {
+          if (index === 0) {
+            return null;
+          }
+          let value = data[item.dataIndex];
+          if (item.renderer) {
+            value = item.renderer(data);
+          } else if (value instanceof Array) {
+            if (item.subDataIndex) {
+              value = value[0][item.subDataIndex];
+            } else {
+              value = value[0].toString();
+            }
+          } else if (item.subDataIndex) {
+            value = value[item.subDataIndex];
+          }
+          const style = item.width && {
+            width: item.width
+          };
+          return (
+            <td key={`p${data.id}${index}`} style={style}>
+              {value}
+            </td>
+          );
+        })
+    );
     return content;
   }
-  render() {
-    const { className, treeStyle } = this.props;
+
+  /**
+   * Return a table cell with a radio button
+   * @returns {object} table cell with a radio button
+   */
+  getSingleSelectElement() {
+    const { index, checked, checkedColor, uncheckedColor, singleSelectIconStyle } = this.props;
     return (
-      <table className={className} style={treeStyle} key="top">
-        <tbody>{this.renderData()}</tbody>
-      </table>
+      <td style={{ width: 40 }}>
+        <RadioButtonGroup
+          name="tree-grid-radio-button"
+          valueSelected={checked ? index : null}
+          onChange={this.changeTreeNodeCheckedValue}
+        >
+          <RadioButton
+            value={index}
+            checkedIcon={<CheckedRadioButton style={{ fill: checkedColor }} />}
+            uncheckedIcon={<UncheckedRadioButton style={{ fill: uncheckedColor }} />}
+            style={{ ...defaultSelectIconStyle, ...singleSelectIconStyle }}
+          />
+        </RadioButtonGroup>
+      </td>
     );
   }
+
+  /**
+   * Return a table cell with a checkbox
+   * @returns {object} table cell with a checkbox
+   */
+  getMultiSelectElement() {
+    const { checked, halfChecked, checkedColor, uncheckedColor, multiSelectIconStyle } = this.props;
+    return (
+      <td style={{ width: 40 }}>
+        <Checkbox
+          checked={checked}
+          checkedIcon={<CheckedCheckbox style={{ fill: checkedColor }} />}
+          uncheckedIcon={
+            halfChecked ? (
+              <HalfCheckedCheckbox style={{ fill: uncheckedColor }} />
+            ) : (
+              <UnCheckedCheckbox style={{ fill: uncheckedColor }} />
+            )
+          }
+          label=""
+          style={{ ...defaultSelectIconStyle, ...multiSelectIconStyle }}
+          onCheck={this.changeTreeNodeCheckedValue}
+        />
+      </td>
+    );
+  }
+
+  /**
+   * Return raido button or checkbox button or a placehodler span
+   *
+   * @returns {object} HTML with raido button or checkbox button or a placehodler span
+   * @memberof TreeNode
+   */
+  getSelectElement() {
+    const { data, singleSelectable, multiSelectable, isLeaf, branchNodeSelectable } = this.props;
+    // "branchNodeSelectable" from config : should branch-node with a select; "enable" from datasource
+    let showSelect = false;
+    if (singleSelectable || multiSelectable) {
+      showSelect =
+        data && data.enable !== undefined
+          ? data.enable
+          : branchNodeSelectable || (!branchNodeSelectable && isLeaf);
+    }
+    const multiOrSingleSelectElement = multiSelectable
+      ? this.getMultiSelectElement()
+      : this.getSingleSelectElement();
+
+    const selectElement = showSelect ? (
+      multiOrSingleSelectElement
+    ) : (
+      <td>
+        <span style={{ display: 'inline-block', width: 1, height: 1 }} />
+      </td>
+    );
+    return selectElement;
+  }
+
+  render() {
+    const {
+      data,
+      nodeStyle,
+      columns,
+      index,
+      treeIndex,
+      deepth,
+      expanded,
+      parentExpanded,
+      isLeaf
+    } = this.props;
+    const display = expanded || parentExpanded ? 'table-row' : 'none';
+    const nodePaddingLeft = nodeStyle.paddingLeft * (deepth - 1);
+    const iconArrow = expanded ? (
+      <ActionArrowDown style={this.getArrowIconStyle()} />
+    ) : (
+      <ActionArrowRight style={this.getArrowIconStyle()} />
+    );
+
+    return (
+      <tr
+        key={`li${data.id}`}
+        data-expanded={expanded}
+        data-index={index}
+        data-tree-index={treeIndex}
+        style={(nodeStyle, { display })}
+      >
+        {/* Show radio button or checkbox or a <span> placeholder */}
+        {this.getSelectElement()}
+        <td
+          key={`div${data.id}`}
+          data-expanded={expanded}
+          data-index={index}
+          data-tree-index={treeIndex}
+          onClick={this.onArrowIconClickHandler}
+        >
+          {/* Tree element's indentation */}
+          <span style={{ display: 'inline-block', width: nodePaddingLeft, height: 1 }} />
+          {!isLeaf && iconArrow}
+          {/* data to be showed */}
+          <span style={{ display: 'inline-block' }}>{data[columns[0].dataIndex]}</span>
+        </td>
+        {columns.length > 1 && this.renderData()}
+      </tr>
+    );
+  }
+
+  /**
+   * When arrow icon has been clicked.
+   * Expand it's children to be showed or collapse it's children and grandchildren to be hide.
+   * @param {object} e
+   */
+  onArrowIconClickHandler = e => {
+    e.stopPropagation();
+    const currentTarget = e.currentTarget;
+    const treeIndex = currentTarget.dataset.treeIndex;
+    this.toggleExpandedTreeNodes(treeIndex, currentTarget);
+  };
+
+  /**
+   * Expand it's children to be showed or collapse it's children and grandchildren to be hide.
+   * @param {string} treeIndex
+   * @param {object} currentTarget
+   */
+  toggleExpandedTreeNodes(treeIndex, currentTarget) {
+    if (this.props.isLeaf) {
+      return;
+    }
+    this.props.updateTreeExpanded(this.props.index);
+  }
+
+  /**
+   * When the radio button or checkbox has be clicked
+   * @param {object} e
+   */
+  changeTreeNodeCheckedValue = e => {
+    this.props.onSelect(this.props.index, e.currentTarget.checked);
+  };
 }
 
-Tree.propTypes = {
-  className: PropTypes.string,
-  defaultValue: PropTypes.any,
-  dataSource: PropTypes.array.isRequired,
+TreeNode.propTypes = {
+  data: PropTypes.any.isRequired,
   columns: PropTypes.array.isRequired,
-  valueColumn: PropTypes.string,
+  index: PropTypes.number,
+  treeIndex: PropTypes.string,
+  deepth: PropTypes.number,
+  isLeaf: PropTypes.bool,
   expanded: PropTypes.bool,
   checked: PropTypes.bool,
+  halfChecked: PropTypes.bool,
+  parentExpanded: PropTypes.bool,
   singleSelectable: PropTypes.bool,
   multiSelectable: PropTypes.bool,
-  searchable: PropTypes.bool,
-  searchedText: PropTypes.string,
   branchNodeSelectable: PropTypes.bool,
   parentRelated: PropTypes.bool,
   treeStyle: PropTypes.object,
-  arrowIconStyle: PropTypes.object,
   singleSelectIconStyle: PropTypes.object,
   multiSelectIconStyle: PropTypes.object,
+  arrowIconStyle: PropTypes.object,
   nodeStyle: PropTypes.object,
   checkedColor: PropTypes.string,
   uncheckedColor: PropTypes.string
