@@ -1,0 +1,11 @@
+@import './App.css';
+@import './components/tree/index.scss';
+@import './components/tree-select/index.scss';
+@import './components/tree-select-dialog/index.scss';
+@import './components/tree-select-textfield/index.scss';
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}

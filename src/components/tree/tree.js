@@ -1,18 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import R from 'ramda';
 
 import TreeNode from './tree-node';
 
 export default class Tree extends React.Component {
   state = {
     treeNodeList: [],
-    defaultSelectNodeList: [],
+    defaultSelectedIndexList: [],
     selectedNodeDataList: [],
     isFirstTimeRender: true
   };
 
   static defaultProps = {
-    className: 'tree-container',
+    className: 'fms-tree__tree-container',
     expanded: true,
     checked: false,
     singleSelectable: false,
@@ -27,13 +28,16 @@ export default class Tree extends React.Component {
   };
 
   componentWillMount() {
-    const { defaultSelectNodeList } = this.state;
-    const treeNodeList = this.setFinalTreeNodeListToState(this.props, defaultSelectNodeList);
+    const { defaultSelectedIndexList } = this.state;
+    const treeNodeList = this.setFinalTreeNodeListToState(this.props, defaultSelectedIndexList);
 
     this.setSelectDataToState(treeNodeList);
+    if (this.props.parentRelated) {
+      this.setDefaultHalfCheckedNodes(defaultSelectedIndexList, treeNodeList);
+    }
 
     this.setState({
-      defaultSelectNodeList
+      defaultSelectedIndexList
     });
   }
 
@@ -92,7 +96,6 @@ export default class Tree extends React.Component {
   }
 
   render() {
-    console.log('treeNodeList====', this.state.treeNodeList);
     const { className, treeStyle, singleSelectable, multiSelectable } = this.props;
     return (
       <table className={className} style={treeStyle} key="top">
@@ -118,17 +121,20 @@ export default class Tree extends React.Component {
    */
   componentWillReceiveProps(nextProps) {
     let treeNodeList = this.state.treeNodeList;
+    const defaultSelectedIndexList = this.state.defaultSelectedIndexList;
     // search text changed or datasource changed
     if (
       nextProps.searchedText !== this.props.searchedText ||
-      (nextProps.dataSource.length !== 0 &&
-        nextProps.dataSource.length !== this.props.dataSource.length)
+      !R.equals(nextProps.dataSource, this.props.dataSource)
     ) {
-      treeNodeList = this.setFinalTreeNodeListToState(nextProps, this.state.treeNodeList);
+      treeNodeList = this.setFinalTreeNodeListToState(nextProps, defaultSelectedIndexList);
       // when search something on tree, should expand all nodes
       if (!nextProps.searchedText) {
         this.resetField('expanded', true, treeNodeList);
         this.resetField('parentExpanded', true, treeNodeList);
+      }
+      if (nextProps.parentRelated) {
+        this.setDefaultHalfCheckedNodes(defaultSelectedIndexList, treeNodeList);
       }
       this.setSelectDataToState(treeNodeList);
     }
@@ -159,31 +165,44 @@ export default class Tree extends React.Component {
   }
 
   /**
+   * Set 'halfChecked' attribute of each tree-node before tree load
+   *
+   * @param {Array} defaultSelectedIndexList default value index
+   * @param {*} treeNodeList
+   * @memberof Tree
+   */
+  setDefaultHalfCheckedNodes(defaultSelectedIndexList, treeNodeList) {
+    if (defaultSelectedIndexList && defaultSelectedIndexList.length > 0) {
+      defaultSelectedIndexList.forEach(item => {
+        this.setCheckValueWhenParentRelated(item, true, treeNodeList);
+      });
+    }
+  }
+
+  /**
    * Add default checked value and children before TreeNodeList sets to state
    * @param {object} props
-   * @param {array} defaultSelectNodeList
+   * @param {array} defaultSelectedIndexList
    */
-  setFinalTreeNodeListToState(props, defaultSelectNodeList) {
+  setFinalTreeNodeListToState(props, defaultSelectedIndexList) {
     const treeNodeList = [];
     const { defaultValue, dataSource, columns, valueColumn, searchedText } = props;
     this.generateTreeNodeList(searchedText, dataSource, columns, treeNodeList);
-    treeNodeList.map((item, index) => {
+    treeNodeList.forEach((item, index) => {
       if (item === null || item === undefined) {
         treeNodeList.splice(index, 1);
         return null;
       }
       // set default value
       const itemValue = item.data[valueColumn];
-      this.state.isFirstTimeRender &&
-        defaultValue &&
-        defaultValue.map(defaultValueItem => {
+      if (this.state.isFirstTimeRender && defaultValue) {
+        defaultValue.forEach(defaultValueItem => {
           if (itemValue === defaultValueItem) {
             item.checked = true;
-            defaultSelectNodeList && defaultSelectNodeList.push(item.index);
+            defaultSelectedIndexList && defaultSelectedIndexList.push(item.index);
           }
-          return true;
         });
-
+      }
       let hasChild = false;
       const childrenNodes = item.childrenNodes;
       if (childrenNodes && childrenNodes.length > 0) {
@@ -329,9 +348,7 @@ export default class Tree extends React.Component {
     if (multiSelectable) {
       treeNodeList[index].checked = selected;
       if (parentRelated) {
-        this.resetField('halfChecked', false, treeNodeList);
-        this.setChildrenField(index, 'checked', selected, treeNodeList);
-        this.setParentChecked(index, 'checked', selected, treeNodeList);
+        this.setCheckValueWhenParentRelated(index, selected, treeNodeList);
       }
     } else if (singleSelectable) {
       this.resetField('checked', false, treeNodeList);
@@ -405,11 +422,11 @@ export default class Tree extends React.Component {
     treeNodeList[parentIndex][attrName] = attrValue;
     const parent = treeNodeList[parentIndex];
     const childrenForParent = parent.children;
-    const isAllChildrenCheckedBool = this.isAllChildrenChecked(childrenForParent, treeNodeList);
+    const isAllChildrenCheckedBool = this.isAllChildrenChecked(parentIndex, childrenForParent, treeNodeList);
     treeNodeList[parentIndex][attrName] = isAllChildrenCheckedBool;
-    if (!isAllChildrenCheckedBool) {
-      treeNodeList[parentIndex].halfChecked = true;
-    }
+    // if (!isAllChildrenCheckedBool) {
+    //   treeNodeList[parentIndex].halfChecked = true;
+    // }
     // set parent's parent
     this.setParentChecked(parentIndex, attrName, attrValue, treeNodeList);
   }
@@ -419,18 +436,58 @@ export default class Tree extends React.Component {
    * @param {array} children
    * @param {array} treeNodeList
    */
-  isAllChildrenChecked(children, treeNodeList) {
+  isAllChildrenChecked(index, children, treeNodeList) {
+    let hasOneChecked = false;
+    let hasOneUnchecked = false;
     for (let i = 0; i < children.length; i++) {
       const childItem = treeNodeList[children[i]];
-      if (!childItem.checked) {
-        return false;
+      // if (!childItem.checked) {
+      //   return false;
+      // }
+      if (!hasOneChecked && childItem.checked) {
+        hasOneChecked = true;
+      }
+      if (!hasOneUnchecked && !childItem.checked) {
+        hasOneUnchecked = true;
       }
       const childrenForChild = childItem.children;
-      childrenForChild &&
-        childrenForChild.length > 0 &&
-        this.isAllChildrenChecked(childrenForChild, treeNodeList);
+      if (childrenForChild && childrenForChild.length > 0) {
+        let childrenChecked = this.isAllChildrenChecked(childItem.index, childrenForChild, treeNodeList);
+        if (childrenChecked) {
+          hasOneChecked = true;
+        } else {
+          hasOneUnchecked = true;
+        }
+      }
+      if (hasOneChecked && hasOneUnchecked) {
+        // treeNodeList[index].halfChecked = true;
+        this.setHalfChecked(index, treeNodeList);
+        return false;
+      }
     }
-    return true;
+    return hasOneUnchecked ? false : true;
+  }
+
+  setHalfChecked(index, treeNodeList) {
+    treeNodeList[index].halfChecked = true;
+    const parentIndex = treeNodeList[index].parent;
+    if (parentIndex !== -1) {
+      this.setHalfChecked(parentIndex, treeNodeList);
+    }
+  }
+
+  /**
+   * When props of 'parentRelated' is true, set parent's 'checked' and 'halfChecked' attribute
+   *
+   * @param {number} index tree node index
+   * @param {boolean} selected has been checked, true|false
+   * @param {Array} treeNodeList
+   * @memberof Tree
+   */
+  setCheckValueWhenParentRelated(index, selected, treeNodeList) {
+    this.resetField('halfChecked', false, treeNodeList);
+    this.setChildrenField(index, 'checked', selected, treeNodeList);
+    this.setParentChecked(index, 'checked', selected, treeNodeList);
   }
 
   /**

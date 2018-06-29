@@ -1,0 +1,42 @@
+$prefix-field: 'fms';
+
+.#{$prefix-field}-tree-select-dialog {
+  &__title {
+    // width: 100%;
+    height: 48px;
+    color: #4d4d4e !important;
+    background-color: #fff !important;
+    padding: 0 16px !important;
+    line-height: 48px !important;
+  }
+
+  &__body {
+    width: 100%;
+    background-color: #ededed;
+    padding: 0px 16px 16px !important;
+  }
+  &__actions {
+    height: 68px;
+    background: #fff;
+    padding: 16px !important;
+
+    button {
+      width: 130px !important;
+      margin: 0 16px 0 0 !important;
+      background-color: #eeeeee !important;
+      color: #4d4d4e !important;
+    }
+    span {
+      font-size: 16px !important;
+      text-transform: none !important;
+    }
+    div {
+      box-shadow: none !important;
+      
+      button {
+        background-color: #00bcd4 !important;
+      }
+    }
+    
+  }
+}

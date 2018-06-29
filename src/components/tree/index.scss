@@ -1,0 +1,53 @@
+@import '../../styles/variable.scss';
+
+$prefix-field: #{$namespace};
+
+.#{$prefix-field}-tree__tree-container {
+  width: 100%;
+  background: #fff;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-collapse: collapse;
+  border-top: solid 3px #fff;
+  font-size: 14px;
+  text-align: left;
+  color: #4d4d4e;
+
+  th {
+    height: 48px;
+    background: #fff;
+    color: #999999;
+    font-weight: 500;
+  }
+
+  tr {
+    height: 48px;
+    line-height: 48px;
+    width: 100%;
+
+    &:nth-of-type(odd)
+    {
+      background:#f4f4f4;
+    }
+    &:nth-of-type(even)
+    {
+      background:#fff;
+    }
+    &:hover {
+      background-color: rgba(255, 0, 0, 0.06);
+    }
+  }
+  th, td {
+    padding: 0;
+    margin: 0;
+    border: none;
+    padding: 0 20px;
+    &:nth-of-type(2) {
+      padding: 0 10px 0 0;
+    }
+    &:first-of-type {
+      padding: 0 0 0 10px;
+    }
+  }
+}

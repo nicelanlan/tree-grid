@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import getMuiTheme from 'material-ui/styles/getMuiTheme';
-import './App.css';
+
 // import TreeSelect from './components/tree-select';
 import Tree from './components/tree';
 import { multipleDataList } from './data/multiple';

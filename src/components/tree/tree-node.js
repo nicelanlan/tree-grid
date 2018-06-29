@@ -24,6 +24,11 @@ const defaultSelectIconStyle = {
  * @extends {React.PureComponent}
  */
 export default class TreeNode extends React.PureComponent {
+  static defaultProps = {
+    nodeStyle: {
+      paddingLeft: 40,
+    },
+  };
   /**
    * Return the arrow icon's style
    * @returns {object} the arrow icon's style
@@ -89,7 +94,7 @@ export default class TreeNode extends React.PureComponent {
   getSingleSelectElement() {
     const { index, checked, checkedColor, uncheckedColor, singleSelectIconStyle } = this.props;
     return (
-      <td style={{ width: 40 }}>
+      <td style={{ width: 40 }} key={`select${this.props.data.id}`}>
         <RadioButtonGroup
           name="tree-grid-radio-button"
           valueSelected={checked ? index : null}
@@ -113,7 +118,7 @@ export default class TreeNode extends React.PureComponent {
   getMultiSelectElement() {
     const { checked, halfChecked, checkedColor, uncheckedColor, multiSelectIconStyle } = this.props;
     return (
-      <td style={{ width: 40 }}>
+      <td style={{ width: 40 }} key={`select${this.props.data.id}`}>
         <Checkbox
           checked={checked}
           checkedIcon={<CheckedCheckbox style={{ fill: checkedColor }} />}
@@ -184,7 +189,7 @@ export default class TreeNode extends React.PureComponent {
 
     return (
       <tr
-        key={`li${data.id}`}
+        key={`tr${data.id}`}
         data-expanded={expanded}
         data-index={index}
         data-tree-index={treeIndex}
@@ -193,14 +198,11 @@ export default class TreeNode extends React.PureComponent {
         {/* Show radio button or checkbox or a <span> placeholder */}
         {this.getSelectElement()}
         <td
-          key={`div${data.id}`}
+          key={`column${data.id}`}
           data-expanded={expanded}
           data-index={index}
           data-tree-index={treeIndex}
           onClick={this.onArrowIconClickHandler}
-          style={{
-            width: data[columns[0].width]
-          }}
         >
           {/* Tree element's indentation */}
           <span style={{ display: 'inline-block', width: nodePaddingLeft, height: 1 }} />
@@ -225,7 +227,6 @@ export default class TreeNode extends React.PureComponent {
 
   /**
    * Expand it's children to be showed or collapse it's children and grandchildren to be hide.
-   * @param {string} treeIndex
    */
   toggleExpandedTreeNodes() {
     if (this.props.isLeaf) {
@@ -264,5 +265,7 @@ TreeNode.propTypes = {
   arrowIconStyle: PropTypes.object,
   nodeStyle: PropTypes.object,
   checkedColor: PropTypes.string,
-  uncheckedColor: PropTypes.string
+  uncheckedColor: PropTypes.string,
+  updateTreeExpanded: PropTypes.func,
+  onSelect: PropTypes.func,
 };

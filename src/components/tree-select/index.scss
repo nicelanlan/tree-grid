@@ -1,0 +1,20 @@
+$prefix-field: 'fms';
+
+.#{$prefix-field}-tree-select {
+  &__select-title {
+    width: 100%;
+    height: 48px;
+    background-color: #fff;
+    border-bottom: solid 1px #d8d8d8;
+
+    p {
+      height: 48px;
+      padding-left: 16px;
+      line-height: 48px;
+      font-size: 22px;
+      font-weight: 500;
+      text-align: left;
+      color: #4d4d4e;
+    }
+  }
+}

@@ -2,92 +2,59 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import SearchBar from '../search-bar';
-import Tree from '../tree';
+import Tree from './tree';
 
-export default class TreeSelect extends React.PureComponent {
+/**
+ * Tree with a search bar, which can be single/multiple selected.
+ *
+ * @export TreeSelect
+ * @class TreeSelect
+ * @extends {React.Component}
+ */
+export default class TreeSelect extends React.Component {
+  state = {
+    searchedValue: ''
+  };
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      searchedValue: '',
-    };
-  }
+  static defaultProps = {
+    className: 'fms-tree-select',
+    searchBar: {},
+    tree: {}
+  };
 
-  onSearchBarChange(value) {
+  /**
+   * When search text changed, set the search text to state.
+   * @param {string} value searching text
+   * @memberof TreeSelect
+   */
+  onSearchBarChange = value => {
     this.setState({
       searchedValue: value
     });
-  }
+  };
 
   render() {
-    const {
-      searchBar: { hintText, componentStyle, textFieldStyle, inputStyle, hintStyle },
-      tree: {
-        className,
-        defaultValue,
-        dataSource,
-        columns,
-        valueColumn,
-        expanded,
-        singleSelectable,
-        multiSelectable,
-        checked,
-        branchNodeSelectable,
-        treeStyle,
-        arrowIconStyle,
-        singleSelectIconStyle,
-        multiSelectIconStyle,
-        nodeStyle,
-        checkedColor,
-        uncheckedColor
-      },
-      afterSelect
-    } = this.props;
-    console.log('this.state.searchedValue===', this.state.searchedValue);
+    const { className, searchBar, tree, afterSelect } = this.props;
     return (
-      <div>
-        <SearchBar
-          componentStyle={componentStyle}
-          inputStyle={inputStyle}
-          hintText={hintText}
-          hintStyle={hintStyle}
-          textFieldStyle={textFieldStyle}
-          onSearchBarChange={this.onSearchBarChange.bind(this)}
-        />
-        <Tree
-          className={className}
-          defaultValue={defaultValue}
-          dataSource={dataSource}
-          columns={columns}
-          valueColumn={valueColumn}
-          expanded={expanded}
-          singleSelectable={singleSelectable}
-          multiSelectable={multiSelectable}
-          checked={checked}
-          searchable={true}
-          searchedText={this.state.searchedValue}
-          branchNodeSelectable={branchNodeSelectable}
-          treeStyle={treeStyle}
-          arrowIconStyle={arrowIconStyle}
-          singleSelectIconStyle={singleSelectIconStyle}
-          multiSelectIconStyle={multiSelectIconStyle}
-          nodeStyle={nodeStyle}
-          checkedColor={checkedColor}
-          uncheckedColor={uncheckedColor}
-          afterSelect={afterSelect}
-        />
+      <div className={className}>
+        <SearchBar onSearchBarChange={this.onSearchBarChange} {...searchBar} />
+        <div className={`${className}__select-title`}>
+          <p>Select</p>
+        </div>
+        <Tree searchedText={this.state.searchedValue} afterSelect={afterSelect} {...tree} />
       </div>
     );
   }
 }
 
 TreeSelect.propTypes = {
+  className: PropTypes.string,
   searchBar: PropTypes.shape({
     hintText: PropTypes.string,
     componentStyle: PropTypes.object,
     textFieldStyle: PropTypes.object,
     inputStyle: PropTypes.object,
-    hintStyle: PropTypes.object,
+    hintStyle: PropTypes.object
   }),
   tree: PropTypes.shape({
     className: PropTypes.string,
@@ -106,7 +73,7 @@ TreeSelect.propTypes = {
     multiSelectIconStyle: PropTypes.object,
     nodeStyle: PropTypes.object,
     checkedColor: PropTypes.string,
-    uncheckedColor: PropTypes.string,
+    uncheckedColor: PropTypes.string
   }),
-  afterSelect: PropTypes.func.isRequired,
+  afterSelect: PropTypes.func.isRequired
 };
