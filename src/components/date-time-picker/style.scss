@@ -1,0 +1,35 @@
+.date-time-picker-dialog {
+  .date-time-picker-dialog__actions {
+    margin-top: -40px !important;
+  }
+  .date-time-picker-dialog__content {
+    display: inline-block;
+    .date-time-picker-dialog__content-date {
+      display: inline-block;
+    }
+    .date-time-picker-dialog__content-time {
+      display: inline-block;
+      width: 300px;
+      position: relative;
+      top: -59px;
+      transform: scale(1.06);
+      > div > div > div > div > span {
+        font-size: 34px !important;
+        font-weight: 500 !important;
+      }
+    }
+  }
+}
+.date-time-picker {
+  display: flex;
+  align-items: flex-end;
+  .date-time-picker-textfield {
+    width: 300px !important;
+    cursor: pointer !important;
+  }
+  .date-time-picker-textfield-error {
+    hr {
+      border-bottom: solid 2px rgb(244, 67, 54) !important;
+    }
+  }
+}
